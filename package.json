@@ -1,0 +1,14 @@
+{
+  "name": "seating-arrangement-ui",
+  "version": "1.0.0",
+  "description": "Seating Arrangement System",
+  "scripts": {
+    "start": "npm-run-all --parallel start:frontend start:backend",
+    "start:frontend": "cd frontend && npm start",
+    "start:backend": "cd backend && npm start",
+    "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}

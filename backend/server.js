@@ -7,7 +7,14 @@ const cors = require('cors');
 const fs = require('fs');
 
 const app = express();
-app.use(cors());
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  methods: ['GET', 'POST', 'DELETE'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
@@ -166,5 +173,44 @@ app.delete('/api/admin/seating', (req, res) => {
   });
 });
 
+// Admin endpoint: Get raw data for a registration number (for debugging)
+app.get('/api/admin/debug/student/:regno', (req, res) => {
+  const { username, password } = req.query;
+  const { regno } = req.params;
+
+  if (!username || !password) {
+    return res.status(401).json({ error: 'Admin credentials required' });
+  }
+
+  db.get('SELECT username FROM admin WHERE username = ? AND password = ?',
+    [username, password], (err, row) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!row) return res.status(401).json({ error: 'Invalid credentials' });
+
+      db.get('SELECT * FROM students WHERE reg_no = ?', [regno], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ error: 'Student not found' });
+        res.json(row);
+      });
+  });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    error: 'Something went wrong!',
+    details: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
+
+// Handle 404s
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});

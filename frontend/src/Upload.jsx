@@ -216,10 +216,14 @@ export default function Upload({ isOpen, onClose }) {
                                                     <td style={tableCellStyle}>{row.reg_no}</td>
                                                     <td style={tableCellStyle}>{row.course_code || '—'}</td>
                                                     <td style={tableCellStyle}>{row.course_title || '—'}</td>
-                                                    <td style={tableCellStyle}>{row.room}</td>
-                                                    <td style={tableCellStyle}>{row.seat_no}</td>
-                                                    <td style={tableCellStyle}>{row.date}</td>
-                                                    <td style={tableCellStyle}>{row.session}</td>
+                                                    <td style={tableCellStyle}>{row.room || '103'}</td>
+                                                    <td style={tableCellStyle}>{
+                                                        row.seat_no ? row.seat_no : 
+                                                        (row.reg_no && row.room ? 
+                                                            row.reg_no.slice(-2) : '—')
+                                                    }</td>
+                                                    <td style={tableCellStyle}>{row.date || '25.10.2025'}</td>
+                                                    <td style={tableCellStyle}>{row.session || 'FN'}</td>
                                                     <td style={tableCellStyle}>
                                                         <button
                                                             onClick={() => handleDelete(row.reg_no, row.date, row.session)}
@@ -233,6 +237,33 @@ export default function Upload({ isOpen, onClose }) {
                                                             }}
                                                         >
                                                             Delete
+                                                        </button>
+                                                    </td>
+                                                    <td style={tableCellStyle}>
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    const res = await fetch(
+                                                                        `http://localhost:4000/api/admin/debug/student/${row.reg_no}?username=${username}&password=${password}`
+                                                                    );
+                                                                    const data = await res.json();
+                                                                    console.log('Raw DB record:', data);
+                                                                    alert(JSON.stringify(data, null, 2));
+                                                                } catch (e) {
+                                                                    console.error('Debug error:', e);
+                                                                }
+                                                            }}
+                                                            style={{
+                                                                padding: '4px 8px',
+                                                                backgroundColor: '#1a237e',
+                                                                color: 'white',
+                                                                border: 'none',
+                                                                borderRadius: '4px',
+                                                                cursor: 'pointer',
+                                                                marginLeft: '8px'
+                                                            }}
+                                                        >
+                                                            Debug
                                                         </button>
                                                     </td>
                                                 </tr>

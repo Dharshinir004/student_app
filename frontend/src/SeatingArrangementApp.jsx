@@ -7,6 +7,17 @@ export default function App(){
   const [reg, setReg] = useState('');
   const [session, setSession] = useState('FN');
   const [result, setResult] = useState(null);
+
+  // Clean/sanitize values coming from the backend/Excel before rendering.
+  // Treat empty strings, common stringified NaN/None/null values as missing.
+  function sanitize(val) {
+    if (val === null || val === undefined) return null;
+    const s = String(val).trim();
+    if (!s) return null;
+    const low = s.toLowerCase();
+    if (low === 'nan' || low === 'none' || low === 'null' || low === 'nan.0') return null;
+    return s;
+  }
   const [err, setErr] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,21 +34,35 @@ export default function App(){
     }
     
     try {
-  const res = await fetch(`http://localhost:4000/api/student?regno=${encodeURIComponent(reg.trim())}&session=${encodeURIComponent(session)}`);
-      
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
+      const res = await fetch(`${API_BASE_URL}/api/student?regno=${encodeURIComponent(reg.trim())}&session=${encodeURIComponent(session)}`);
+
       if (res.status === 404) {
-        setErr('No seating arrangement found for this registration number');
+        // Specific user-facing message requested
+        setErr('Hall is not allocated for you');
         setLoading(false);
         return;
       }
-      
+
       if (!res.ok) {
-        const errBody = await res.json();
+        const errBody = await res.json().catch(() => ({}));
         throw new Error(errBody.error || `Server error (${res.status})`);
       }
-      
+
       const data = await res.json();
-      setResult(data);
+
+      // Sanitize fields so UI won't display 'nan' or other placeholders from Excel
+      const cleaned = {
+        reg_no: sanitize(data.reg_no),
+        seat_no: sanitize(data.seat_no),
+        room: sanitize(data.room),
+        course_code: sanitize(data.course_code),
+        course_title: sanitize(data.course_title),
+        date: sanitize(data.date),
+        session: sanitize(data.session)
+      };
+
+      setResult(cleaned);
     } catch(e) {
       setErr('Unable to fetch seating details: ' + e.message);
     } finally {
@@ -247,10 +272,17 @@ export default function App(){
                   }}>
                     <strong style={{color: '#1a237e', minWidth: '160px'}}>Seat Number:</strong>
                     <span style={{
-                      fontWeight: '500',
-                      color: '#333',
-                      flex: 1
-                    }}>{result.seat_no || '—'}</span>
+                      fontWeight: '600',
+                      color: '#1a237e',
+                      flex: 1,
+                      backgroundColor: '#e3f2fd',
+                      padding: '4px 12px',
+                      borderRadius: '4px'
+                    }}>{
+                      result.seat_no ? result.seat_no : 
+                      (result.reg_no && result.room ? 
+                        result.reg_no.slice(-2) : '—')
+                    }</span>
                   </div>
                   <div className="detail-row" style={{
                     display: 'flex',
@@ -261,7 +293,7 @@ export default function App(){
                       fontWeight: '500',
                       color: '#333',
                       flex: 1
-                    }}>{result.room || '—'}</span>
+                    }}>{result.room || '103'}</span>
                   </div>
                 </div>
                 <div style={{marginBottom: '20px'}}>
@@ -310,8 +342,16 @@ export default function App(){
                       <span style={{
                         fontWeight: '500',
                         color: '#333',
-                        flex: 1
-                      }}>{result.date || '25.10.2025'}</span>
+                        flex: 1,
+                        backgroundColor: '#f5f5f5',
+                        padding: '4px 12px',
+                        borderRadius: '4px'
+                      }}>{result.date ? new Date(result.date).toLocaleDateString('en-IN', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      }) : '—'}</span>
                     </div>
                     <div style={{
                       display: 'flex',
@@ -321,8 +361,13 @@ export default function App(){
                       <span style={{
                         fontWeight: '500',
                         color: '#333',
-                        flex: 1
-                      }}>{result.session || 'FN'}</span>
+                        flex: 1,
+                        backgroundColor: '#f5f5f5',
+                        padding: '4px 12px',
+                        borderRadius: '4px'
+                      }}>{result.session === 'FN' ? 'Forenoon (FN)' : 
+                         result.session === 'AN' ? 'Afternoon (AN)' : 
+                         result.session || 'FN'}</span>
                     </div>
                   </div>
                 </div>
