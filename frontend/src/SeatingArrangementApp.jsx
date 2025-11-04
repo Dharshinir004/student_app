@@ -34,8 +34,7 @@ export default function App(){
     }
     
     try {
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
-      const res = await fetch(`${API_BASE_URL}/api/student?regno=${encodeURIComponent(reg.trim())}&session=${encodeURIComponent(session)}`);
+      const res = await fetch(`/api/student?regno=${encodeURIComponent(reg.trim())}&session=${encodeURIComponent(session)}`);
 
       if (res.status === 404) {
         // Specific user-facing message requested
