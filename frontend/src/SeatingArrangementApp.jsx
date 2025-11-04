@@ -18,6 +18,46 @@ export default function App(){
     if (low === 'nan' || low === 'none' || low === 'null' || low === 'nan.0') return null;
     return s;
   }
+
+  // Parse dates coming from the backend. The excel worker stores dates as 'DD.MM.YYYY'.
+  // Convert common formats (DD.MM.YYYY, DD/MM/YYYY, YYYY-MM-DD) to an ISO string.
+  function parseBackendDate(val) {
+    if (!val && val !== 0) return null;
+    const s = String(val).trim();
+    if (!s) return null;
+
+    // If already ISO-like or parseable by Date, prefer that
+    const isoAttempt = new Date(s);
+    if (!isNaN(isoAttempt.getTime())) return isoAttempt.toISOString();
+
+    // Handle dd.mm.yyyy or dd/mm/yyyy or dd-mm-yyyy
+    const m = s.match(/^(\d{1,2})[\.\/-](\d{1,2})[\.\/-](\d{2,4})$/);
+    if (m) {
+      let day = parseInt(m[1], 10);
+      let month = parseInt(m[2], 10);
+      let year = parseInt(m[3], 10);
+      if (year < 100) year += 2000; // two-digit year -> 20xx
+      const dt = new Date(year, month - 1, day);
+      if (!isNaN(dt.getTime())) return dt.toISOString();
+    }
+
+    // Try parsing Excel serial numbers (e.g. 44954)
+    if (/^\d+$/.test(s)) {
+      try {
+        const serial = Number(s);
+        // Excel's epoch: 1899-12-30; Excel has a fake leap day at serial 60
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        let days = Math.floor(serial);
+        if (serial > 60) days -= 1; // adjust for Excel leap bug
+        const dt = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000);
+        if (!isNaN(dt.getTime())) return dt.toISOString();
+      } catch (err) {
+        // fallthrough
+      }
+    }
+
+    return null;
+  }
   const [err, setErr] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -36,6 +76,9 @@ export default function App(){
     try {
       const res = await fetch(`/api/student?regno=${encodeURIComponent(reg.trim())}&session=${encodeURIComponent(session)}`);
 
+      // Read content-type early so we can handle HTML (or other non-JSON) responses
+      const contentType = (res.headers.get('content-type') || '').toLowerCase();
+
       if (res.status === 404) {
         // Specific user-facing message requested
         setErr('Hall is not allocated for you');
@@ -44,8 +87,24 @@ export default function App(){
       }
 
       if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        throw new Error(errBody.error || `Server error (${res.status})`);
+        // Try to parse JSON error body when available, otherwise fall back to text
+        if (contentType.includes('application/json')) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error(errBody.error || `Server error (${res.status})`);
+        } else {
+          const txt = await res.text().catch(() => '');
+          // If backend returned HTML (common for 500 pages or static responses), surface a helpful message
+          const short = txt ? (txt.slice(0, 300) + (txt.length > 300 ? '…' : '')) : '';
+          throw new Error(short ? `Server returned non-JSON response (${res.status}): ${short}` : `Server error (${res.status})`);
+        }
+      }
+
+      // For successful responses we still must ensure the body is JSON. If not, read text and report it.
+      if (!contentType.includes('application/json')) {
+        const txt = await res.text().catch(() => '');
+        console.error('Expected JSON from /api/student but received:', txt);
+        const short = txt ? (txt.slice(0, 300) + (txt.length > 300 ? '…' : '')) : '';
+        throw new Error(short ? `Received non-JSON response from server: ${short}` : 'Received non-JSON response from server');
       }
 
       const data = await res.json();
@@ -56,8 +115,18 @@ export default function App(){
         seat_no: sanitize(data.seat_no),
         room: sanitize(data.room),
         course_code: sanitize(data.course_code),
-        course_title: sanitize(data.course_title),
-        date: sanitize(data.date),
+        // Treat common placeholders like '-' as missing
+        course_title: (function(){
+          const t = sanitize(data.course_title);
+          if (!t) return null;
+          if (t === '-' || t === '—') return null;
+          return t;
+        })(),
+        // Parse backend date formats into ISO string; if unparseable, set null so UI shows '—'
+        date: (function(){
+          const p = parseBackendDate(data.date);
+          return p || null;
+        })(),
         session: sanitize(data.session)
       };
 
@@ -67,6 +136,18 @@ export default function App(){
     } finally {
       setLoading(false);
     }
+  }
+
+  function formatDateForDisplay(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('en-IN', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   }
 
   return (
@@ -345,12 +426,7 @@ export default function App(){
                         backgroundColor: '#f5f5f5',
                         padding: '4px 12px',
                         borderRadius: '4px'
-                      }}>{result.date ? new Date(result.date).toLocaleDateString('en-IN', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      }) : '—'}</span>
+                      }}>{formatDateForDisplay(result.date)}</span>
                     </div>
                     <div style={{
                       display: 'flex',
