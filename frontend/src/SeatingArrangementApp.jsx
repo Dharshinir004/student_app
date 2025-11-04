@@ -6,7 +6,6 @@ import './App.css';
 export default function App(){
   const [reg, setReg] = useState('');
   const [session, setSession] = useState('FN');
-  const [date] = useState('25.10.2025');
   const [result, setResult] = useState(null);
   const [err, setErr] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -164,121 +163,168 @@ export default function App(){
             margin: '20px auto',
             border: '1px solid #ddd'
           }}>
-            <h2 style={{
-              textAlign: 'center',
-              color: '#1a237e',
-              marginBottom: '20px',
-              fontSize: '20px'
-            }}>Examinations Hall Seating Details</h2>
-            <img src="https://miro.medium.com/v2/resize:fit:2400/1*aDT5b3T7zBUNALBRlikHjg.jpeg" 
-                alt="KGiSL Logo" 
-                style={{ height: '60px', marginBottom: '10px' }} />
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              marginBottom: '24px',
+              borderBottom: '2px solid #1a237e',
+              paddingBottom: '16px'
+            }}>
+              <h2 style={{
+                color: '#1a237e',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                marginBottom: '16px'
+              }}>Examinations Hall Seating Details</h2>
+              <img src="https://miro.medium.com/v2/resize:fit:2400/1*aDT5b3T7zBUNALBRlikHjg.jpeg"
+                alt="KGiSL Logo"
+                style={{ 
+                  height: '80px', 
+                  marginBottom: '12px',
+                  objectFit: 'contain'
+                }} />
+              <div style={{
+                textAlign: 'center',
+                marginBottom: '8px'
+              }}>
+                <h3 style={{
+                  fontSize: '20px',
+                  color: '#333',
+                  fontWeight: 'bold',
+                  marginBottom: '4px'
+                }}>KGiSL Institute of Technology</h3>
+                <p style={{
+                  fontSize: '14px',
+                  color: '#666'
+                }}>Affiliated to Anna University · Approved by AICTE</p>
+              </div>
+            </div>
             <div style={{
               display: 'grid',
               gridTemplateColumns: '150px 1fr',
-              gap: '20px'
+              gap: '24px',
+              padding: '0 16px'
             }}>
               {/* Left column for photo */}
               <div>
                 <div style={{
                   width: '150px',
                   height: '180px',
-                  border: '1px solid #ddd',
-                  marginBottom: '10px',
+                  border: '2px solid #1a237e',
+                  borderRadius: '4px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: '#f5f5f5'
                 }}>
-                  <span style={{color: '#999', fontSize: '12px'}}>Photo</span>
+                  <span style={{color: '#666', fontSize: '14px'}}>Photo</span>
                 </div>
               </div>
 
               {/* Right column for student details */}
               <div style={{
                 display: 'grid',
-                gap: '12px',
+                gap: '16px',
                 fontSize: '15px'
               }}>
                 
-                <div style={{textAlign: 'center', paddingBottom: '8px'}}>
-                  <div style={{fontWeight: 700, color: '#222'}}>KGiSL Institute of Technology</div>
-                  <div style={{fontSize: '12px', color: '#666'}}>Affiliated to Anna University · Approved by AICTE</div>
-                </div>
-                
-                <div className="detail-row" style={{
-                  borderBottom: '1px solid #eee',
-                  paddingBottom: '8px',
-                  display: 'flex',
-                  justifyContent: 'space-between'
-                }}>
-                  <strong style={{color: '#1a237e', width: '140px'}}>Register Number:</strong>
-                  <span>{result.reg_no}</span>
-                </div>
-                <div className="detail-row" style={{
-                  borderBottom: '1px solid #eee',
-                  paddingBottom: '8px',
-                  display: 'flex',
-                  justifyContent: 'space-between'
-                }}>
-                  <strong style={{color: '#1a237e', width: '140px'}}>Seat Number:</strong>
-                  <span>{result.seat_no ?? '—'}</span>
-                </div>
-                <div className="detail-row" style={{
-                  borderBottom: '1px solid #eee',
-                  paddingBottom: '8px',
-                  display: 'flex',
-                  justifyContent: 'space-between'
-                }}>
-                  <strong style={{color: '#1a237e', width: '140px'}}>Room / Hall:</strong>
-                  <span>{result.room ?? '—'}</span>
-                </div>
-                <div style={{
-                  borderBottom: '1px solid #eee',
-                  paddingBottom: '12px',
-                  marginBottom: '8px'
-                }}>
-                  <div style={{
-                    marginBottom: '4px',
-                    color: '#1a237e',
-                    fontWeight: 'bold'
-                  }}>Course Information:</div>
-                  <div style={{
+                <div style={{display: 'grid', gap: '16px', marginBottom: '20px'}}>
+                  <div className="detail-row" style={{
                     display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px'
+                    gap: '32px'
                   }}>
+                    <strong style={{color: '#1a237e', minWidth: '160px'}}>Register Number:</strong>
+                    <span style={{
+                      fontWeight: '500',
+                      color: '#333',
+                      flex: 1
+                    }}>{result.reg_no}</span>
+                  </div>
+                  <div className="detail-row" style={{
+                    display: 'flex',
+                    gap: '32px'
+                  }}>
+                    <strong style={{color: '#1a237e', minWidth: '160px'}}>Seat Number:</strong>
+                    <span style={{
+                      fontWeight: '500',
+                      color: '#333',
+                      flex: 1
+                    }}>{result.seat_no || '—'}</span>
+                  </div>
+                  <div className="detail-row" style={{
+                    display: 'flex',
+                    gap: '32px'
+                  }}>
+                    <strong style={{color: '#1a237e', minWidth: '160px'}}>Room / Hall:</strong>
+                    <span style={{
+                      fontWeight: '500',
+                      color: '#333',
+                      flex: 1
+                    }}>{result.room || '—'}</span>
+                  </div>
+                </div>
+                <div style={{marginBottom: '20px'}}>
+                  <div style={{
+                    color: '#1a237e',
+                    fontWeight: 'bold',
+                    fontSize: '16px',
+                    marginBottom: '12px'
+                  }}>Course Information:</div>
+                  <div style={{display: 'grid', gap: '16px'}}>
                     <div style={{
                       display: 'flex',
-                      gap: '8px'
+                      gap: '32px'
                     }}>
-                      <strong style={{color: '#444', minWidth: '100px'}}>Code:</strong>
-                      <span>{result.course_code ?? '—'}</span>
+                      <strong style={{color: '#1a237e', minWidth: '160px'}}>Code:</strong>
+                      <span style={{
+                        fontWeight: '500',
+                        color: '#333',
+                        flex: 1
+                      }}>{result.course_code || '—'}</span>
                     </div>
                     <div style={{
                       display: 'flex',
-                      gap: '8px'
+                      gap: '32px'
                     }}>
-                      <strong style={{color: '#444', minWidth: '100px'}}>Title:</strong>
-                      <span style={{flex: 1}}>{result.course_title ?? '—'}</span>
+                      <strong style={{color: '#1a237e', minWidth: '160px'}}>Title:</strong>
+                      <span style={{
+                        fontWeight: '500',
+                        color: '#333',
+                        flex: 1
+                      }}>{result.course_title || '—'}</span>
                     </div>
                   </div>
                 </div>
-                <div className="detail-row" style={{
-                  borderBottom: '1px solid #eee',
-                  paddingBottom: '8px',
-                  display: 'flex',
-                  justifyContent: 'space-between'
+                
+                <div style={{
+                  borderTop: '1px solid #e0e0e0',
+                  paddingTop: '20px'
                 }}>
-                  <strong style={{color: '#1a237e', width: '140px'}}>Date:</strong>
-                  <span>{result.date}</span>
-                </div>
-                <div className="detail-row" style={{
-                  display: 'flex',
-                  justifyContent: 'space-between'
-                }}>
-                  <strong style={{color: '#1a237e', width: '140px'}}>Session:</strong>
-                  <span>{result.session}</span>
+                  <div style={{display: 'grid', gap: '16px'}}>
+                    <div style={{
+                      display: 'flex',
+                      gap: '32px'
+                    }}>
+                      <strong style={{color: '#1a237e', minWidth: '160px'}}>Date:</strong>
+                      <span style={{
+                        fontWeight: '500',
+                        color: '#333',
+                        flex: 1
+                      }}>{result.date || '25.10.2025'}</span>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      gap: '32px'
+                    }}>
+                      <strong style={{color: '#1a237e', minWidth: '160px'}}>Session:</strong>
+                      <span style={{
+                        fontWeight: '500',
+                        color: '#333',
+                        flex: 1
+                      }}>{result.session || 'FN'}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -286,20 +332,24 @@ export default function App(){
             {/* Instructions Section */}
             <div style={{
               marginTop: '30px',
-              padding: '15px',
+              padding: '20px',
               backgroundColor: '#f8f9fa',
-              borderRadius: '4px'
+              borderRadius: '8px',
+              border: '1px solid #e0e0e0'
             }}>
               <h3 style={{
                 color: '#1a237e',
                 fontSize: '16px',
-                marginBottom: '10px'
+                marginBottom: '12px',
+                fontWeight: 'bold'
               }}>Instructions:</h3>
               <ul style={{
                 margin: 0,
-                padding: '0 0 0 20px',
+                padding: '0 0 0 24px',
                 fontSize: '14px',
-                color: '#555'
+                color: '#444',
+                display: 'grid',
+                gap: '8px'
               }}>
                 <li>Carry a valid photo ID proof</li>
                 <li>Report to the exam center 30 minutes before exam time</li>
